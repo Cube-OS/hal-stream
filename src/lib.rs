@@ -1,18 +1,25 @@
-// use std::io::Result;
+use std::io::{Read,Write};
 use std::time::Duration;
 
 /// High level read/write trait for payload connections to implement
 pub trait Stream {
     type StreamError;
 
-    /// Writes an I2C command
+    /// Write
     ///
     /// # Arguments
     ///
-    /// `command` - Command to write
-    fn write(&self, command: Vec<u8>) -> Result<(), Self::StreamError>;
+    /// `data` - Data to write
+    fn write(&self, data: Vec<u8>) -> Result<(), Self::StreamError>;
 
-    /// Reads command result
+    /// Write multiple single bytes
+    ///
+    /// # Arguments
+    ///
+    /// `data` - Data to write
+    fn write_bytes(&self, data: Vec<u8>) -> Result<(), Self::StreamError>;
+
+    /// Read Command result
     ///
     /// # Arguments
     ///
