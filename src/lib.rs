@@ -3,7 +3,7 @@ use std::time::Duration;
 
 /// High level read/write trait for payload connections to implement
 pub trait Stream {
-    type StreamError;
+    type StreamError: std::fmt::Debug;
 
     /// Write
     ///
