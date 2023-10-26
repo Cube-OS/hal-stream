@@ -42,6 +42,6 @@ pub trait Stream {
     ///
     /// `command` - Command to write and read from
     /// `rx_len`  - Amount of data to read
-    /// `delay`   - Delay between writing and reading
-    fn transfer(&self, command: Vec<u8>, rx_len: usize, delay: Duration) -> Result<Vec<u8>,Self::StreamError>;
+    /// `delay`   - Delay between writing and reading, time-out for UDP read
+    fn transfer(&self, command: Vec<u8>, rx_len: usize, delay: Option<Duration>) -> Result<Vec<u8>,Self::StreamError>;
 }
