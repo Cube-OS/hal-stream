@@ -2,6 +2,7 @@
 name = "hal-stream"
 version = "0.1.1"
 edition = "2021"
+repository = "ssh://git@github.com/Cube-OS/hal-stream.git"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
