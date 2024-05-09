@@ -27,10 +27,16 @@ jobs:
     - name: package
       run: cargo package
 
+    - name: Get crate info
+      id: crate_info
+      run: |
+        echo "::set-output name=VERSION::$(cargo read-manifest | jq -r .version)"
+        echo "::set-output name=NAME::$(cargo read-manifest | jq -r .name)"
+
     - name: Upload package
       uses: actions/upload-artifact@v2
       with:
-        name: my-package
+        name: ${{ steps.crate_info.outputs.NAME }}-${{ steps.crate_info.outputs.VERSION }}
         path: target/package/*.crate
     
     - name: create tag 
@@ -43,3 +49,39 @@ jobs:
 
     - name: push
       run: git push origin ${{ env.TAG_NAME }}
+
+    - name: Check if tag exists
+      id: check_tag
+      run: |
+        TAG_EXISTS=$(curl --silent --head --fail "https://github.com/$GITHUB_REPOSITORY/releases/tag/${{ steps.get_version.outputs.VERSION }}")
+        if [ "$TAG_EXISTS" == "" ]; then
+          echo "::set-output name=EXISTS::false"
+        else
+          echo "::set-output name=EXISTS::true"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      if: steps.check_tag.outputs.EXISTS == 'false'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
+        release_name: Release ${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      if: steps.check_tag.outputs.EXISTS == 'false'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./target/package/*.crate
+        asset_name: ${{ steps.crate_info.outputs.NAME }}-${{ steps.crate_info.outputs.VERSION }}.crate
+        asset_content_type: application/octet-stream
