@@ -39,21 +39,17 @@ jobs:
         name: ${{ steps.crate_info.outputs.NAME }}-${{ steps.crate_info.outputs.VERSION }}
         path: target/package/*.crate
     
-    - name: create tag 
+    - name: Get version
+      id: get_version
       run: |
         VERSION=$(grep "^version" Cargo.toml | cut -d' ' -f3 | tr -d '"')
-        TAG_NAME="v$VERSION"
-        echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
-        git tag $TAG_NAME
-        git push origin ${{ env.TAG_NAME }}
-
-    - name: push
-      run: git push origin ${{ env.TAG_NAME }}
+        echo "::set-output name=VERSION::${VERSION}"
 
     - name: Check if tag exists
       id: check_tag
       run: |
-        TAG_EXISTS=$(curl --silent --head --fail "https://github.com/$GITHUB_REPOSITORY/releases/tag/${{ steps.get_version.outputs.VERSION }}")
+        TAG_NAME="v${{ steps.get_version.outputs.VERSION }}"
+        TAG_EXISTS=$(curl --silent --head --fail "https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG_NAME")
         if [ "$TAG_EXISTS" == "" ]; then
           echo "::set-output name=EXISTS::false"
         else
@@ -61,6 +57,14 @@ jobs:
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create and push tag
+      if: steps.check_tag.outputs.EXISTS == 'false'
+      run: |
+        TAG_NAME="v${{ steps.get_version.outputs.VERSION }}"
+        echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+        git tag $TAG_NAME
+        git push origin ${{ env.TAG_NAME }}
 
     - name: Create Release
       id: create_release
