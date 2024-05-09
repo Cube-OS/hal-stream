@@ -17,26 +17,23 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-        override: true
+        override: true   
     
-    - name: Check for version change
-      id: check_version
-      run: |
-        VERSION_CHANGE=$(git diff HEAD^ HEAD -- Cargo.toml | grep "^+version" || true)
-        if [[ -n "$VERSION_CHANGE" ]]; then
-          echo "::set-output name=version_changed::true"
-        else
-          echo "::set-output name=version_changed::false"
-        fi    
-    
-    - name: Build, test, package, tag and push
-      if: steps.check_version.outputs.version_changed == 'true'
+    - name: Build and test
       run: |
         cargo build --release
         cargo test
-        cargo package
+
+    - name: package
+      run: cargo package
+    
+    - name: create tag 
+      run: |
         VERSION=$(grep "^version" Cargo.toml | cut -d' ' -f3 | tr -d '"')
         TAG_NAME="v$VERSION"
         echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
         git tag $TAG_NAME
         git push origin ${{ env.TAG_NAME }}
+
+    - name: push
+      run: git push origin ${{ env.TAG_NAME }}
