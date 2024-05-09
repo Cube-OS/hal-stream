@@ -26,6 +26,12 @@ jobs:
 
     - name: package
       run: cargo package
+
+    - name: Upload package
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-package
+        path: target/package/*.crate
     
     - name: create tag 
       run: |
