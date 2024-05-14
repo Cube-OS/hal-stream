@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - main # Trigger workflow on push or pull request to the main branch
+      - main # Trigger workflow on push to the main branch
 
 jobs:
   release:
@@ -18,6 +18,14 @@ jobs:
       with:
         toolchain: stable
         override: true   
+    
+    - name: Pull Docker image
+      run: docker pull ghcr.io/patrickoppel/ktra:latest
+    
+    - name: Run Docker image
+      run: docker run ghcr.io/patrickoppel/ktra:latest
+
+    - name: Create user for Ktra
     
     - name: Build and test
       run: |
